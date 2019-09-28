@@ -8,6 +8,7 @@ import com.ps.assessment.model.TeamStanding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -24,14 +25,14 @@ public class FootballApiService {
         Predicate<TeamStanding> teamPredicate =
                 teamStanding -> teamStanding.getTeamName().equals(teamName);
         TeamStanding teamStanding = new TeamStanding();
-        Country country = apiClient.getCountries().stream().filter(countryPredicate).collect(Collectors.toList()).get(0);
-        if (country != null) {
-            League league = apiClient.getLeagues(String.valueOf(country.getCountryId())).stream().filter(leaguePredicate)
-                    .collect(Collectors.toList()).get(0);
-            if (league != null) {
-                teamStanding = apiClient.getOverallStanding(String.valueOf(league.getLeagueId()))
+        List<Country> country = apiClient.getCountries().stream().filter(countryPredicate).collect(Collectors.toList());
+        if (country != null && country.size()>0) {
+            List<League> league = apiClient.getLeagues(String.valueOf(country.get(0).getCountryId())).stream().filter(leaguePredicate)
+                    .collect(Collectors.toList());
+            if (league != null && league.size()>0) {
+                teamStanding = apiClient.getOverallStanding(String.valueOf(league.get(0).getLeagueId()))
                         .stream().filter(teamPredicate).collect(Collectors.toList()).get(0);
-                teamStanding.setCountryId(country.getCountryId());
+                teamStanding.setCountryId(country.get(0).getCountryId());
             }
             else{
                 throw new MatchNotFoundException("League doesn't exist");
